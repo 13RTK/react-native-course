@@ -6,7 +6,9 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      <Text>Edit src/app/index.tsx to edit this screen.</Text>
+      <Text style={styles.hint}>
+        Edit src/app/index.tsx to edit this screen.
+      </Text>
       <Text onPress={() => router.navigate('/about')}>Go To About</Text>
     </View>
   );
@@ -17,5 +19,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  hint: {
+    fontSize: 30,
+    color: 'red',
   },
 });
