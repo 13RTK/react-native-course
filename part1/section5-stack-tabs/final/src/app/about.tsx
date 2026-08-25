@@ -1,10 +1,11 @@
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const AboutScreen = () => {
   return (
-    <View>
-      <Text>AboutScreen</Text>
-    </View>
+    <SafeAreaView>
+      <Text className='text-center text-4xl'>AboutScreen</Text>
+    </SafeAreaView>
   );
 };
 
