@@ -1,7 +1,7 @@
+import { FeedCard } from '@/components/feed-card';
 import { getFeeds } from '@/services/apiFeed';
-import { Host, List, ListItem } from '@expo/ui';
 import { useQuery } from '@tanstack/react-query';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Index() {
@@ -24,16 +24,13 @@ export default function Index() {
   }
 
   return (
-    <Host style={{ flex: 1 }}>
-      {isSuccess && (
-        <List>
-          {feeds.map((feed) => (
-            <ListItem supportingText={feed.description} key={feed.id}>
-              {feed.title}
-            </ListItem>
-          ))}
-        </List>
-      )}
-    </Host>
+    <SafeAreaView edges={['bottom']} className='android:mt-8'>
+      <FlatList
+        data={feeds}
+        renderItem={({ item: feed }) => <FeedCard feed={feed} />}
+        keyExtractor={(item) => String(item.id)}
+        showsVerticalScrollIndicator={false}
+      />
+    </SafeAreaView>
   );
 }
