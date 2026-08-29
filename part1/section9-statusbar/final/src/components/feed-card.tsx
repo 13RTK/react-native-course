@@ -8,7 +8,7 @@ const StyledImage = cssInterop(Image, { className: 'style' });
 export function FeedCard({ feed }: { feed: Feed }) {
   return (
     <View
-      className='overflow-hidden rounded-2xl bg-white'
+      className='overflow-hidden my-2 mx-4 rounded-2xl bg-white dark:bg-gray-800'
       style={{ borderCurve: 'continuous' }}
     >
       <StyledImage
@@ -22,14 +22,14 @@ export function FeedCard({ feed }: { feed: Feed }) {
         <Text
           selectable
           numberOfLines={1}
-          className='text-lg font-semibold text-gray-900'
+          className='text-lg font-semibold text-gray-900 dark:text-gray-400'
         >
           {feed.title}
         </Text>
         <Text
           selectable
           numberOfLines={3}
-          className='text-sm leading-5 text-gray-600'
+          className='text-sm leading-5 text-gray-600 dark:text-gray-200'
         >
           {feed.description}
         </Text>
