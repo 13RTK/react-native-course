@@ -32,7 +32,7 @@ export default function CameraViewDemo() {
       <CameraView style={styles.camera} facing={facing} />
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-          <Text style={styles.text}>Flip Camera</Text>
+          <Text style={styles.text}>Switch Camera</Text>
         </TouchableOpacity>
       </View>
     </View>
