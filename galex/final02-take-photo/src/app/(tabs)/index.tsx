@@ -1,5 +1,5 @@
-import CameraViewDemo from '@/components/camera-view-demo';
+import Camera from '@/components/camera';
 
 export default function LensScreen() {
-  return <CameraViewDemo />;
+  return <Camera />;
 }
