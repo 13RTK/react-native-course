@@ -1,5 +1,9 @@
+import { photosAtom } from '@/atoms/photos-atom';
 import { Host, Icon } from '@expo/ui';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
+import * as Crypto from 'expo-crypto';
+import { router } from 'expo-router';
+import { useAtom } from 'jotai';
 import { cssInterop } from 'nativewind';
 import {
   ComponentProps,
@@ -8,7 +12,14 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Button, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Button,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 type StyledCameraViewProps = ComponentProps<typeof CameraView> & {
   className?: string;
@@ -26,6 +37,8 @@ export default function Camera() {
   const cameraViewRef = useRef<CameraView>(null);
 
   const isCameraDisabled = !isCameraReady || isTakingPhoto;
+
+  const [photos, setPhotos] = useAtom(photosAtom);
 
   if (!permission) {
     // Camera permissions are still loading.
@@ -49,14 +62,24 @@ export default function Camera() {
       return;
     }
 
-    setIsTakingPhoto(false);
+    setIsTakingPhoto(true);
 
     try {
       const pictureRef = await cameraViewRef.current?.takePictureAsync({
         quality: 1,
       });
-      console.log(pictureRef);
+
+      setPhotos([...photos, { id: Crypto.randomUUID(), uri: pictureRef.uri }]);
+
+      Alert.alert('Photo saved', 'Would want to check your photos?', [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        { text: 'Go to Photos', onPress: () => router.push('/gallery') },
+      ]);
     } catch (error) {
+      console.log(error);
     } finally {
       setIsTakingPhoto(false);
     }
@@ -84,9 +107,9 @@ export default function Camera() {
 
       {/* Take Photo Button */}
       <View className='absolute bottom-16 w-full items-center'>
-        <TouchableOpacity
-          className={`items-center justify-center border-4 border-white bg-black/30 p-1 size-20 rounded-full ${isCameraDisabled} ? 'opacity-45' : ''`}
-
+        <Pressable
+          className={`items-center justify-center border-4 border-white bg-black/30 p-1 size-20 rounded-full ${isCameraDisabled ? 'opacity-50' : ''}`}
+          pointerEvents='box-only'
           disabled={isCameraDisabled}
           onPress={handleTakePhoto}
         >
@@ -102,7 +125,7 @@ export default function Camera() {
               />
             </Host>
           </View>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );
