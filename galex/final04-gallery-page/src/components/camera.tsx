@@ -1,4 +1,5 @@
 import { photosAtom } from '@/atoms/photos-atom';
+import { checkPhotoReminderAtom } from '@/atoms/reminder-atom';
 import { Host, Icon } from '@expo/ui';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import * as Crypto from 'expo-crypto';
@@ -39,6 +40,9 @@ export default function Camera() {
   const isCameraDisabled = !isCameraReady || isTakingPhoto;
 
   const [photos, setPhotos] = useAtom(photosAtom);
+  const [checkPhotoReminder, setCheckPhotoReminder] = useAtom(
+    checkPhotoReminderAtom,
+  );
 
   if (!permission) {
     // Camera permissions are still loading.
@@ -71,13 +75,20 @@ export default function Camera() {
 
       setPhotos([...photos, { id: Crypto.randomUUID(), uri: pictureRef.uri }]);
 
-      Alert.alert('Photo saved', 'Would want to check your photos?', [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        { text: 'Go to Photos', onPress: () => router.push('/gallery') },
-      ]);
+      // Alert only reminder be true
+      if (checkPhotoReminder) {
+        Alert.alert('Photo saved', 'Would want to check your photos?', [
+          {
+            text: 'Never remind me',
+            onPress: () => setCheckPhotoReminder(false),
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          { text: 'Go To Gallery', onPress: () => router.push('/gallery') },
+        ]);
+      }
     } catch (error) {
       console.log(error);
     } finally {
