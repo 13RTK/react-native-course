@@ -48,7 +48,8 @@
           "recordAudioAndroid": true,
           "barcodeScannerEnabled": true
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,
