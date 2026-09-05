@@ -3,12 +3,12 @@ import { checkPhotoReminderAtom } from '@/atoms/reminder-atom';
 import { useCamera } from '@/hooks/camera';
 import { usePicture } from '@/hooks/picture';
 import { Host, Icon } from '@expo/ui';
-import { CameraView } from 'expo-camera';
+import { CameraView, useMicrophonePermissions } from 'expo-camera';
 import * as Crypto from 'expo-crypto';
 import { router } from 'expo-router';
 import { useAtom } from 'jotai';
 import { cssInterop } from 'nativewind';
-import { ComponentProps, ComponentType, RefAttributes } from 'react';
+import { ComponentProps, ComponentType, RefAttributes, useState } from 'react';
 import {
   Alert,
   Button,
@@ -33,6 +33,8 @@ export default function Camera() {
     isCameraReady,
     setIsCameraReady,
     cameraViewRef,
+    cameraMode,
+    setCameraMode,
   } = useCamera();
 
   const {
@@ -84,6 +86,54 @@ export default function Camera() {
     checkPhotoReminderAtom,
   );
 
+  const [isRecording, setIsRecording] = useState(false);
+  const [microphonePermission, requestMicrophonePermission] =
+    useMicrophonePermissions();
+
+  async function handleRecordVideo() {
+    if (!cameraViewRef.current || !isCameraReady) {
+      return;
+    }
+
+    if (isRecording) {
+      cameraViewRef.current.stopRecording();
+      return;
+    }
+
+    let hasMicrophonePermission = microphonePermission?.granted ?? false;
+
+    if (!hasMicrophonePermission) {
+      const result = await requestMicrophonePermission();
+      hasMicrophonePermission = result.granted;
+    }
+
+    if (!hasMicrophonePermission) {
+      Alert.alert('Microphone Permission Required');
+      return;
+    }
+
+    setIsRecording(true);
+
+    try {
+      const video = await cameraViewRef.current.recordAsync();
+
+      console.log(video);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsRecording(false);
+    }
+  }
+
+  function handleAction() {
+    if (cameraMode === 'picture') {
+      handleTakePhoto();
+      return;
+    }
+
+    handleRecordVideo();
+  }
+
   if (!cameraPermission) {
     // Camera permissions are still loading.
     return <View />;
@@ -108,35 +158,91 @@ export default function Camera() {
         className='flex-1 w-full'
         facing={facing}
         ref={cameraViewRef}
+        mode={cameraMode}
+        autofocus='on'
       />
       {/* Camera Switch Button */}
       <TouchableOpacity
         className='absolute top-16 right-4 rounded-full bg-black/50 px-4 py-3'
         onPress={toggleCameraFacing}
+        disabled={isRecording}
       >
         <Text className='font-semibold text-white'>Switch Camera</Text>
       </TouchableOpacity>
 
-      {/* Take Photo Button */}
-      <View className='absolute bottom-16 w-full items-center'>
-        <Pressable
-          className={`items-center justify-center border-4 border-white bg-black/30 p-1 size-20 rounded-full ${isCameraDisabled ? 'opacity-50' : ''}`}
-          pointerEvents='box-only'
-          disabled={isCameraDisabled}
-          onPress={handleTakePhoto}
-        >
-          <View className='h-full w-full items-center justify-center rounded-full bg-white'>
+      {/* Camera Mode Toggle */}
+      <View className='absolute bottom-44 w-full items-center'>
+        <View className='flex-row gap-1 rounded-full bg-black/60 p-1'>
+          {/* Toggle to take picture */}
+          <Pressable
+            pointerEvents='box-only'
+            onPress={() => setCameraMode('picture')}
+            disabled={isRecording}
+            className={`size-12 items-center justify-center rounded-full ${cameraMode === 'picture' ? 'bg-white' : ''}`}
+          >
             <Host matchContents>
               <Icon
                 name={Icon.select({
                   ios: 'camera.fill',
                   android: import('@expo/material-symbols/photo_camera.xml'),
                 })}
-                size={28}
-                color='black'
+                size={24}
+                color={cameraMode === 'picture' ? 'black' : 'white'}
               />
             </Host>
-          </View>
+          </Pressable>
+
+          {/* Toggle to record video */}
+          <Pressable
+            pointerEvents='box-only'
+            disabled={isRecording}
+            onPress={() => setCameraMode('video')}
+            className={`size-12 items-center justify-center rounded-full ${cameraMode === 'video' ? 'bg-white' : ''}`}
+          >
+            <Host matchContents>
+              <Icon
+                name={Icon.select({
+                  ios: 'video.fill',
+                  android: import('@expo/material-symbols/videocam.xml'),
+                })}
+                size={25}
+                color={cameraMode === 'video' ? 'black' : 'white'}
+              />
+            </Host>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Action Button */}
+      <View className='absolute bottom-16 w-full items-center'>
+        <Pressable
+          className={`items-center justify-center border-4 border-white bg-black/30 p-1 size-20 rounded-full ${isCameraDisabled ? 'opacity-50' : ''}`}
+          pointerEvents='box-only'
+          disabled={isCameraDisabled}
+          onPress={handleAction}
+        >
+          {cameraMode === 'picture' && (
+            <View className='size-full items-center justify-center rounded-full bg-white'>
+              <Host matchContents>
+                <Icon
+                  name={Icon.select({
+                    ios: 'camera.fill',
+                    android: import('@expo/material-symbols/photo_camera.xml'),
+                  })}
+                  size={28}
+                  color='black'
+                />
+              </Host>
+            </View>
+          )}
+
+          {cameraMode === 'video' && (
+            <View
+              className={`bg-red-500 
+                ${isRecording ? ' size-8 rounded-lg ' : ' size-full rounded-full'}
+                  `}
+            ></View>
+          )}
         </Pressable>
       </View>
     </View>
