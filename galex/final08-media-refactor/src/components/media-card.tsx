@@ -1,7 +1,8 @@
+import { Media } from '@/types/media';
 import { isAvailableAsync, shareAsync } from 'expo-sharing';
 import { Alert, Image, TouchableOpacity, View } from 'react-native';
 
-const PhotoCard = ({ photo }: { photo: { id: string; uri: string } }) => {
+const MediaCard = ({ media }: { media: Media }) => {
   async function shareImage() {
     const isAvailable = await isAvailableAsync();
     if (!isAvailable) {
@@ -9,10 +10,10 @@ const PhotoCard = ({ photo }: { photo: { id: string; uri: string } }) => {
       return;
     }
 
-    await shareAsync(photo.uri, {
+    await shareAsync(media.uri, {
       dialogTitle: 'Galex Share',
-      mimeType: 'image/jpeg',
-      UTI: 'public.jpeg',
+      mimeType: media.type === 'image' ? 'image/jpeg' : 'video/mp4',
+      UTI: media.type === 'image' ? 'public.jpeg' : 'public.mp4',
     });
   }
 
@@ -35,12 +36,12 @@ const PhotoCard = ({ photo }: { photo: { id: string; uri: string } }) => {
 
   return (
     <View
-      key={photo.id}
+      key={media.id}
       className='bg-zinc-200 dark:bg-zinc-800 rounded-2xl overflow-hidden aspect-square mb-3 w-[48.5%]'
     >
       <TouchableOpacity onLongPress={handleLongPress}>
         <Image
-          source={{ uri: photo.uri }}
+          source={{ uri: media.uri }}
           resizeMode='cover'
           className='size-full'
         />
@@ -49,4 +50,4 @@ const PhotoCard = ({ photo }: { photo: { id: string; uri: string } }) => {
   );
 };
 
-export default PhotoCard;
+export default MediaCard;

@@ -1,3 +1,3 @@
 import { atom } from 'jotai';
 
-export const checkPhotoReminderAtom = atom(true);
+export const checkMediaReminderAtom = atom(true);

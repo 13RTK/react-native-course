@@ -1,16 +1,15 @@
-import { photosAtom } from '@/atoms/photos-atom';
-import { checkPhotoReminderAtom } from '@/atoms/reminder-atom';
+import { mediasAtom } from '@/atoms/medias-atom';
 import CameraActionButton from '@/components/camera-action-button';
 import CameraFaceSwitch from '@/components/camera-face-switch';
 import CameraModeSwitch from '@/components/camera-mode-switch';
 import Spinner from '@/components/spinner';
 import { useCamera } from '@/hooks/camera';
+import { useMediaReminder } from '@/hooks/media-reminder';
 import { usePicture } from '@/hooks/picture';
 import { useVideo } from '@/hooks/video';
 import { CameraView } from 'expo-camera';
 import * as Crypto from 'expo-crypto';
-import { router } from 'expo-router';
-import { useAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import { cssInterop } from 'nativewind';
 import { ComponentProps, ComponentType, RefAttributes } from 'react';
 import { Alert, Button, Text, View } from 'react-native';
@@ -50,6 +49,8 @@ export default function Camera() {
     recordSecond,
   } = useVideo();
 
+  const { checkMediaRemind } = useMediaReminder();
+
   async function handleTakePhoto() {
     if (!cameraViewRef.current || isCameraDisabled) {
       return;
@@ -62,22 +63,13 @@ export default function Camera() {
         quality: 1,
       });
 
-      setPhotos([...photos, { id: Crypto.randomUUID(), uri: pictureRef.uri }]);
+      setMedias((prev) => [
+        ...prev,
+        { id: Crypto.randomUUID(), uri: pictureRef.uri, type: 'image' },
+      ]);
 
       // Alert only reminder be true
-      if (checkPhotoReminder) {
-        Alert.alert('Photo saved', 'Would want to check your photos?', [
-          {
-            text: 'Never remind me',
-            onPress: () => setCheckPhotoReminder(false),
-          },
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          { text: 'Go To Gallery', onPress: () => router.push('/gallery') },
-        ]);
-      }
+      checkMediaRemind();
     } catch (error) {
       console.log(error);
     } finally {
@@ -87,10 +79,7 @@ export default function Camera() {
 
   const isCameraDisabled = !isCameraReady || isTakingPhoto;
 
-  const [photos, setPhotos] = useAtom(photosAtom);
-  const [checkPhotoReminder, setCheckPhotoReminder] = useAtom(
-    checkPhotoReminderAtom,
-  );
+  const setMedias = useSetAtom(mediasAtom);
 
   async function handleRecordVideo() {
     if (!cameraViewRef.current || !isCameraReady) {
@@ -118,8 +107,17 @@ export default function Camera() {
 
     try {
       const video = await cameraViewRef.current.recordAsync();
+      if (!video) {
+        Alert.alert('Video recording failed');
+        return;
+      }
 
-      console.log(video);
+      setMedias((prev) => [
+        ...prev,
+        { id: Crypto.randomUUID(), uri: video.uri, type: 'video' },
+      ]);
+
+      checkMediaRemind();
     } catch (error) {
       console.log(error);
     } finally {
