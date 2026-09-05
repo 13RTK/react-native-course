@@ -1,5 +1,6 @@
 import { photosAtom } from '@/atoms/photos-atom';
 import { checkPhotoReminderAtom } from '@/atoms/reminder-atom';
+import CameraActionButton from '@/components/camera-action-button';
 import CameraFaceSwitch from '@/components/camera-face-switch';
 import CameraModeSwitch from '@/components/camera-mode-switch';
 import Spinner from '@/components/spinner';
@@ -175,37 +176,12 @@ export default function Camera() {
       />
 
       {/* Action Button */}
-      <View className='absolute bottom-16 w-full items-center'>
-        <Pressable
-          className={`items-center justify-center border-4 border-white bg-black/30 p-1 size-20 rounded-full ${isCameraDisabled ? 'opacity-50' : ''}`}
-          pointerEvents='box-only'
-          disabled={isCameraDisabled}
-          onPress={handleAction}
-        >
-          {cameraMode === 'picture' && (
-            <View className='size-full items-center justify-center rounded-full bg-white'>
-              <Host matchContents>
-                <Icon
-                  name={Icon.select({
-                    ios: 'camera.fill',
-                    android: import('@expo/material-symbols/photo_camera.xml'),
-                  })}
-                  size={28}
-                  color='black'
-                />
-              </Host>
-            </View>
-          )}
-
-          {cameraMode === 'video' && (
-            <View
-              className={`bg-red-500 
-                ${isRecording ? ' size-8 rounded-lg ' : ' size-full rounded-full'}
-                  `}
-            ></View>
-          )}
-        </Pressable>
-      </View>
+      <CameraActionButton
+        isCameraDisabled={isCameraDisabled}
+        handleAction={handleAction}
+        cameraMode={cameraMode}
+        isRecording={isRecording}
+      />
     </View>
   );
 }
