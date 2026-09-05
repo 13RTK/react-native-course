@@ -7,14 +7,13 @@ import Spinner from '@/components/spinner';
 import { useCamera } from '@/hooks/camera';
 import { usePicture } from '@/hooks/picture';
 import { useVideo } from '@/hooks/video';
-import { Host, Icon } from '@expo/ui';
 import { CameraView } from 'expo-camera';
 import * as Crypto from 'expo-crypto';
 import { router } from 'expo-router';
 import { useAtom } from 'jotai';
 import { cssInterop } from 'nativewind';
 import { ComponentProps, ComponentType, RefAttributes } from 'react';
-import { Alert, Button, Pressable, Text, View } from 'react-native';
+import { Alert, Button, Text, View } from 'react-native';
 
 type StyledCameraViewProps = ComponentProps<typeof CameraView> & {
   className?: string;
@@ -47,6 +46,8 @@ export default function Camera() {
     setIsRecording,
     microphonePermission,
     requestMicrophonePermission,
+    recordMinute,
+    recordSecond,
   } = useVideo();
 
   async function handleTakePhoto() {
@@ -161,7 +162,20 @@ export default function Camera() {
         ref={cameraViewRef}
         mode={cameraMode}
         autofocus='on'
+        videoQuality='2160p'
       />
+
+      {/* Video Record Time */}
+      {isRecording && (
+        <View className='absolute top-16 items-center left-0 right-0 px-4 py-3'>
+          <Text className='font-semibold text-white'>
+            🎥
+            {recordMinute.toString().padStart(2, '0')}:
+            {recordSecond.toString().padStart(2, '0')}
+          </Text>
+        </View>
+      )}
+
       {/* Camera Switch Button */}
       <CameraFaceSwitch
         toggleCameraFacing={toggleCameraFacing}
