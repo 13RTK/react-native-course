@@ -1,4 +1,5 @@
 import { mediasAtom } from '@/atoms/medias-atom';
+import { useMedia } from '@/hooks/media';
 import { Media } from '@/types/media';
 import { Host, Icon } from '@expo/ui';
 import { isAvailableAsync, shareAsync } from 'expo-sharing';
@@ -7,6 +8,7 @@ import { Alert, Image, TouchableOpacity, View } from 'react-native';
 
 const MediaCard = ({ media }: { media: Media }) => {
   const setMedias = useSetAtom(mediasAtom);
+  const { deleteMediaFromGallery } = useMedia();
 
   async function shareImage() {
     const isAvailable = await isAvailableAsync();
@@ -27,10 +29,13 @@ const MediaCard = ({ media }: { media: Media }) => {
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: () =>
+        onPress: async () => {
+          await deleteMediaFromGallery(media.id);
+
           setMedias((medias) =>
             medias.filter((mediaItem) => mediaItem.id !== media.id),
-          ),
+          );
+        },
       },
       {
         text: 'Cancel',

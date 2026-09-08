@@ -4,11 +4,12 @@ import CameraFaceSwitch from '@/components/camera-face-switch';
 import CameraModeSwitch from '@/components/camera-mode-switch';
 import Spinner from '@/components/spinner';
 import { useCamera } from '@/hooks/camera';
+import { useMedia } from '@/hooks/media';
 import { useMediaReminder } from '@/hooks/media-reminder';
 import { usePicture } from '@/hooks/picture';
 import { useVideo } from '@/hooks/video';
 import { CameraView } from 'expo-camera';
-import * as Crypto from 'expo-crypto';
+import { usePermissions } from 'expo-media-library';
 import { useSetAtom } from 'jotai';
 import { cssInterop } from 'nativewind';
 import { ComponentProps, ComponentType, RefAttributes } from 'react';
@@ -40,6 +41,8 @@ export default function Camera() {
     requestCameraPermission,
   } = usePicture();
 
+  const [libraryPermission, requestLibraryPermission] = usePermissions();
+
   const {
     isRecording,
     setIsRecording,
@@ -50,6 +53,8 @@ export default function Camera() {
   } = useVideo();
 
   const { checkMediaRemind } = useMediaReminder();
+
+  const { addMediaToGallery } = useMedia();
 
   async function handleTakePhoto() {
     if (!cameraViewRef.current || isCameraDisabled) {
@@ -63,15 +68,18 @@ export default function Camera() {
         quality: 1,
       });
 
+      const asset = await addMediaToGallery(pictureRef.uri);
+
       setMedias((prev) => [
         ...prev,
-        { id: Crypto.randomUUID(), uri: pictureRef.uri, type: 'image' },
+        { id: asset.id, uri: pictureRef.uri, type: 'image' },
       ]);
 
       // Alert only reminder be true
       checkMediaRemind();
     } catch (error) {
       console.log(error);
+      Alert.alert('Error taking photo');
     } finally {
       setIsTakingPhoto(false);
     }
@@ -112,9 +120,11 @@ export default function Camera() {
         return;
       }
 
+      const asset = await addMediaToGallery(video.uri);
+
       setMedias((prev) => [
         ...prev,
-        { id: Crypto.randomUUID(), uri: video.uri, type: 'video' },
+        { id: asset.id, uri: video.uri, type: 'video' },
       ]);
 
       checkMediaRemind();
@@ -134,7 +144,7 @@ export default function Camera() {
     handleRecordVideo();
   }
 
-  if (!cameraPermission) {
+  if (!cameraPermission || !libraryPermission) {
     // Camera permissions are still loading.
     return <Spinner />;
   }
@@ -147,6 +157,18 @@ export default function Camera() {
           We need your permission to show the camera
         </Text>
         <Button onPress={requestCameraPermission} title='grant permission' />
+      </View>
+    );
+  }
+
+  if (!libraryPermission.granted) {
+    // Camera permissions are not granted yet.
+    return (
+      <View className='flex-1 flex justify-center items-center'>
+        <Text className='text-center pb-10 dark:text-white'>
+          We need your permission to save/delete media
+        </Text>
+        <Button onPress={requestLibraryPermission} title='grant permission' />
       </View>
     );
   }
